@@ -1,7 +1,8 @@
 import { requireAuth } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DashHeader } from "@/components/dashboard/ui";
-import { SettingsForm } from "@/features/dashboard/settings-form";
+import { SettingsTabs } from "@/features/dashboard/settings-tabs";
+import { emailConfigured, smsConfigured } from "@/lib/messaging";
 import type { SiteSettings } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -13,8 +14,8 @@ export default async function SettingsAdmin() {
 
   return (
     <div className="max-w-4xl">
-      <DashHeader title="Site Settings" description="Global website settings, branding, contact details and SEO." />
-      <SettingsForm settings={data as SiteSettings} />
+      <DashHeader title="Site Settings" description="Branding, contact details, SEO and notification preferences." />
+      <SettingsTabs settings={data as SiteSettings} emailConfigured={emailConfigured()} smsConfigured={smsConfigured()} />
     </div>
   );
 }

@@ -37,20 +37,23 @@ export function NewsletterForm({ variant = "footer" }: { variant?: "footer" | "c
     );
   }
 
+  const emailCls =
+    variant === "footer"
+      ? "h-11 w-full rounded-full border-0 bg-white/15 px-5 text-sm text-white placeholder:text-white/60 outline-none ring-1 ring-white/20 focus:ring-white/50"
+      : "h-11 w-full rounded-full border border-brand-200 bg-white px-5 text-sm outline-none focus:border-brand-400";
+
   return (
-    <form action={action} className="flex flex-col gap-2 sm:flex-row">
+    <form action={action} className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input type="email" name="email" required placeholder="Enter your email" className={emailCls} />
+        <SubmitButton />
+      </div>
       <input
-        type="email"
-        name="email"
-        required
-        placeholder="Enter your email"
-        className={
-          variant === "footer"
-            ? "h-11 flex-1 rounded-full border-0 bg-white/15 px-5 text-sm text-white placeholder:text-white/60 outline-none ring-1 ring-white/20 focus:ring-white/50"
-            : "h-11 flex-1 rounded-full border border-brand-200 bg-white px-5 text-sm outline-none focus:border-brand-400"
-        }
+        type="tel"
+        name="phone"
+        placeholder="Phone (optional, for SMS updates)"
+        className={emailCls + " sm:text-xs"}
       />
-      <SubmitButton />
     </form>
   );
 }

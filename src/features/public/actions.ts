@@ -3,6 +3,11 @@
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
+import {
+  notifyAdmissionSubmitted,
+  notifyContactSubmitted,
+  notifyNewSubscriber,
+} from "@/features/notifications/service";
 
 export type ActionResult = { ok: boolean; message: string };
 
@@ -10,12 +15,14 @@ export type ActionResult = { ok: boolean; message: string };
 const subscribeSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
   full_name: z.string().trim().max(120).optional().or(z.literal("")),
+  phone: z.string().trim().max(40).optional().or(z.literal("")),
 });
 
 export async function subscribeNewsletter(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   const parsed = subscribeSchema.safeParse({
     email: formData.get("email"),
     full_name: formData.get("full_name") ?? "",
+    phone: formData.get("phone") ?? "",
   });
   if (!parsed.success) {
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid input." };
@@ -24,10 +31,19 @@ export async function subscribeNewsletter(_prev: ActionResult | null, formData: 
   const { error } = await supabase
     .from("newsletter_subscribers")
     .upsert(
-      { email: parsed.data.email.toLowerCase(), full_name: parsed.data.full_name || null, status: "subscribed" },
+      {
+        email: parsed.data.email.toLowerCase(),
+        full_name: parsed.data.full_name || null,
+        phone: parsed.data.phone || null,
+        status: "subscribed",
+      },
       { onConflict: "email" }
     );
   if (error) return { ok: false, message: "Something went wrong. Please try again." };
+
+  try {
+    await notifyNewSubscriber({ email: parsed.data.email, full_name: parsed.data.full_name });
+  } catch {}
   return { ok: true, message: "You are subscribed! Watch out for our newsletters." };
 }
 
@@ -59,6 +75,16 @@ export async function submitContact(_prev: ActionResult | null, formData: FormDa
     message: parsed.data.message,
   });
   if (error) return { ok: false, message: "Could not send your message. Please try again." };
+
+  try {
+    await notifyContactSubmitted({
+      name: parsed.data.name,
+      email: parsed.data.email,
+      phone: parsed.data.phone,
+      subject: parsed.data.subject,
+      message: parsed.data.message,
+    });
+  } catch {}
   return { ok: true, message: "Thank you! Your message has been sent. We will be in touch soon." };
 }
 
@@ -83,19 +109,36 @@ export async function submitAdmission(_prev: ActionResult | null, formData: Form
 
   const d = parsed.data;
   const supabase = createAdminClient();
-  const { error } = await supabase.from("admission_applications").insert({
-    child_first_name: d.child_first_name,
-    child_last_name: d.child_last_name,
-    gender: d.gender || null,
-    date_of_birth: d.date_of_birth || null,
-    applying_for: d.applying_for || null,
-    parent_name: d.parent_name,
-    parent_phone: d.parent_phone,
-    parent_email: d.parent_email || null,
-    previous_school: d.previous_school || null,
-    message: d.message || null,
-  });
+  const { data: inserted, error } = await supabase
+    .from("admission_applications")
+    .insert({
+      child_first_name: d.child_first_name,
+      child_last_name: d.child_last_name,
+      gender: d.gender || null,
+      date_of_birth: d.date_of_birth || null,
+      applying_for: d.applying_for || null,
+      parent_name: d.parent_name,
+      parent_phone: d.parent_phone,
+      parent_email: d.parent_email || null,
+      previous_school: d.previous_school || null,
+      message: d.message || null,
+    })
+    .select("reference")
+    .single();
   if (error) return { ok: false, message: "Could not submit the application. Please try again." };
+
+  try {
+    await notifyAdmissionSubmitted({
+      reference: inserted?.reference ?? "GRA",
+      child_first_name: d.child_first_name,
+      child_last_name: d.child_last_name,
+      applying_for: d.applying_for,
+      parent_name: d.parent_name,
+      parent_phone: d.parent_phone,
+      parent_email: d.parent_email,
+    });
+  } catch {}
+
   revalidatePath("/dashboard/admissions");
   return { ok: true, message: "Application received! We will contact you shortly to continue the process." };
 }

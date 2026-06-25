@@ -55,6 +55,7 @@ export interface SiteSettings {
   og_image_url: string | null;
   primary_color: string | null;
   data: Record<string, unknown>;
+  messaging?: Record<string, any>;
 }
 
 export interface PageSection {

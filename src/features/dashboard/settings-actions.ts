@@ -54,3 +54,31 @@ export async function saveSettings(formData: FormData) {
   revalidatePath("/", "layout");
   return { ok: true };
 }
+
+// ---- Notification (messaging) preferences ----------------------
+export async function saveMessaging(messaging: Record<string, unknown>) {
+  await requireAuth(["system_administrator"]);
+  const supabase = createAdminClient();
+  const { error } = await supabase.from("site_settings").update({ messaging }).eq("id", 1);
+  if (error) return { ok: false, message: error.message };
+  revalidatePath("/dashboard/settings");
+  return { ok: true };
+}
+
+export async function sendTestNotification(channel: "email" | "sms", to: string) {
+  await requireAuth(["system_administrator"]);
+  const { dispatch, baseEmail } = await import("@/lib/messaging");
+  if (channel === "email") {
+    const html = baseEmail({
+      heading: "Test notification ✅",
+      intro: "If you can read this, your email delivery is working.",
+      bodyHtml: "<p>This is a test message from your Great Rainbow Academy dashboard.</p>",
+    });
+    const res = await dispatch({ channels: ["email"], category: "test", emails: [to], email: { subject: "Test notification from Great Rainbow Academy", html } });
+    if (res.emailSent > 0) return { ok: true, message: `Test email sent to ${to}.` };
+    return { ok: false, message: res.emailConfigured ? "Email provider rejected the message. Check the delivery log." : "No email provider configured (add a Resend or SMTP key)." };
+  }
+  const res = await dispatch({ channels: ["sms"], category: "test", phones: [to], smsMessage: "Test SMS from Great Rainbow Academy dashboard." });
+  if (res.smsSent > 0) return { ok: true, message: `Test SMS sent to ${to}.` };
+  return { ok: false, message: res.smsConfigured ? "SMS provider rejected the message. Check the delivery log." : "No SMS provider configured (add SMS credentials)." };
+}

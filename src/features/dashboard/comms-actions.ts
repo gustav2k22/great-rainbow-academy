@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAuth, ADMIN_ROLES, STAFF_ROLES } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { dispatch, baseEmail, type Channel } from "@/lib/messaging";
 
 // ---- Contact messages -----------------------------------------
 export async function setMessageStatus(id: string, status: "new" | "read" | "archived") {
@@ -54,18 +55,61 @@ export async function deleteNewsletter(id: string) {
   return { ok: true };
 }
 
-export async function sendNewsletter(id: string) {
+function bodyToHtml(body?: string | null) {
+  if (!body) return "";
+  return body
+    .split(/\n{2,}/)
+    .map((p) => `<p style="margin:0 0 14px;">${p.replace(/\n/g, "<br/>")}</p>`)
+    .join("");
+}
+
+export async function sendNewsletter(id: string, channels: Channel[]) {
   await requireAuth(ADMIN_ROLES);
   const supabase = createAdminClient();
-  const { count } = await supabase
+
+  const { data: nl } = await supabase.from("newsletters").select("*").eq("id", id).maybeSingle();
+  if (!nl) return { ok: false, message: "Campaign not found." };
+
+  const { data: subs } = await supabase
     .from("newsletter_subscribers")
-    .select("*", { count: "exact", head: true })
+    .select("email, phone")
     .eq("status", "subscribed");
+
+  const emails = (subs ?? []).map((s) => s.email).filter(Boolean) as string[];
+  const phones = (subs ?? []).map((s) => s.phone).filter(Boolean) as string[];
+
+  const html = baseEmail({ heading: nl.subject, intro: nl.preview ?? undefined, bodyHtml: bodyToHtml(nl.body) });
+  const smsMessage = `${nl.subject}${nl.preview ? ": " + nl.preview : ""}`.slice(0, 300);
+
+  const res = await dispatch({
+    channels,
+    category: "newsletter",
+    emails,
+    phones,
+    email: { subject: nl.subject, html },
+    smsMessage,
+  });
+
   const { error } = await supabase
     .from("newsletters")
-    .update({ status: "published", sent_at: new Date().toISOString(), recipients: count ?? 0 })
+    .update({
+      status: "published",
+      sent_at: new Date().toISOString(),
+      channels,
+      email_count: res.emailSent,
+      sms_count: res.smsSent,
+      recipients: res.emailSent + res.smsSent,
+    })
     .eq("id", id);
   if (error) return { ok: false, message: error.message };
+
   revalidatePath("/dashboard/newsletter");
-  return { ok: true, recipients: count ?? 0 };
+  return {
+    ok: true,
+    emailSent: res.emailSent,
+    smsSent: res.smsSent,
+    emailConfigured: res.emailConfigured,
+    smsConfigured: res.smsConfigured,
+    channels,
+  };
 }
