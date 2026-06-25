@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Great Rainbow Academy – design tokens
+   ============================================================ */
+@theme {
+  --color-rainbow-red: #ef4444;
+  --color-rainbow-orange: #f97316;
+  --color-rainbow-yellow: #facc15;
+  --color-rainbow-green: #22c55e;
+  --color-rainbow-blue: #3b82f6;
+  --color-rainbow-indigo: #6366f1;
+  --color-rainbow-violet: #8b5cf6;
+
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+  --color-brand-800: #5b21b6;
+  --color-brand-900: #4c1d95;
+
+  --color-ink: #1e1b2e;
+  --color-muted: #6b7280;
+
+  --font-display: var(--font-display), "Poppins", system-ui, sans-serif;
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  --shadow-soft: 0 10px 40px -12px rgba(76, 29, 149, 0.25);
+  --shadow-glow: 0 0 0 1px rgba(124, 58, 237, 0.08), 0 12px 50px -12px rgba(124, 58, 237, 0.35);
+
+  --animate-shimmer: shimmer 1.8s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-gradient: gradient-x 8s ease infinite;
+  --animate-marquee: marquee 32s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #1e1b2e;
+}
+
+* {
+  border-color: rgba(124, 58, 237, 0.12);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-brand-200);
+  color: var(--color-brand-900);
+}
+
+/* Themed scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--color-brand-400), var(--color-brand-600));
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* ---- Utility helpers ---------------------------------------- */
+.rainbow-text {
+  background: linear-gradient(90deg, #ef4444, #f97316, #facc15, #22c55e, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 200% auto;
+}
+.rainbow-bar {
+  background: linear-gradient(90deg, #ef4444, #f97316, #facc15, #22c55e, #3b82f6, #8b5cf6);
+}
+.text-balance { text-wrap: balance; }
+.text-pretty { text-wrap: pretty; }
+
+.shimmer-bg {
+  background-image: linear-gradient(
+    100deg,
+    rgba(237, 233, 254, 0.35) 30%,
+    rgba(221, 214, 254, 0.85) 50%,
+    rgba(237, 233, 254, 0.35) 70%
+  );
+  background-size: 1000px 100%;
+  animation: var(--animate-shimmer);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
