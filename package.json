@@ -12,7 +12,8 @@
     "media:upload": "node scripts/upload-media.mjs",
     "e2e": "node scripts/e2e.mjs",
     "favicon:gen": "node scripts/gen-favicon.mjs",
-    "media:enhance": "node --env-file=.env.local scripts/enhance-upload.mjs"
+    "media:enhance": "node --env-file=.env.local scripts/enhance-upload.mjs",
+    "media:segment": "node --env-file=.env.local scripts/segment-portraits.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

@@ -21,18 +21,26 @@ export interface StaffEntry {
 export function StaffExplorer({ staff }: { staff: StaffEntry[] }) {
   const [group, setGroup] = useState("all");
 
+  // Departments only for non-leadership staff, excluding any that duplicate
+  // the leadership/team groups (e.g. a department literally named "Leadership").
   const departments = useMemo(() => {
     const set = new Set<string>();
-    staff.forEach((s) => s.department && set.add(s.department));
+    staff.forEach((s) => {
+      const d = s.department?.trim();
+      if (d && !s.is_leadership && !["leadership", "team"].includes(d.toLowerCase())) set.add(d);
+    });
     return Array.from(set);
   }, [staff]);
 
+  const leadershipCount = staff.filter((s) => s.is_leadership).length;
+  const teamCount = staff.filter((s) => !s.is_leadership).length;
+
   const options: FilterOption[] = [
     { value: "all", label: "Everyone", count: staff.length },
-    { value: "leadership", label: "Leadership", count: staff.filter((s) => s.is_leadership).length },
-    { value: "team", label: "Teachers & Staff", count: staff.filter((s) => !s.is_leadership).length },
+    { value: "leadership", label: "Leadership", count: leadershipCount },
+    { value: "team", label: "Teachers & Staff", count: teamCount },
     ...departments.map((d) => ({ value: `dept:${d}`, label: d, count: staff.filter((s) => s.department === d).length })),
-  ];
+  ].filter((o) => o.value === "all" || (o.count ?? 0) > 0);
 
   const filtered = useMemo(
     () =>

@@ -29,7 +29,9 @@ export function Navbar({ logoUrl, schoolName }: { logoUrl?: string | null; schoo
     <header
       className={cn(
         "sticky top-0 z-[100] transition-all duration-300",
-        scrolled ? "glass shadow-[0_4px_30px_-12px_rgba(76,29,149,0.25)]" : "bg-white/80"
+        scrolled
+          ? "bg-white/95 shadow-[0_4px_30px_-12px_rgba(76,29,149,0.35)] backdrop-blur-md supports-[backdrop-filter]:bg-white/85"
+          : "bg-white"
       )}
     >
       <div className="h-1 w-full rainbow-bar" />
