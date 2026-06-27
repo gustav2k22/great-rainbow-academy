@@ -71,6 +71,14 @@ Sign in at **/login**.
 - Per-page metadata, `sitemap.xml`, `robots.txt`, Organization + Event **JSON-LD**
 - Working **admission**, **contact** and **newsletter** forms
 
+### Notifications & messaging (email + SMS)
+- **Email** sends via **Resend** (primary) with automatic **SMTP** fallback. Set `RESEND_API_KEY` and/or `SMTP_*` in `.env.local`.
+- **SMS** via a pluggable provider (`SMS_PROVIDER=arkesel|twilio|none`).
+- Transactional notifications fire automatically on **new admission**, **new contact message** and **new subscriber** (with an applicant acknowledgement + subscriber welcome email).
+- In **Dashboard → Site Settings → Notifications**, an admin chooses, per event, to deliver via **email, SMS, both or neither**, sets recipient emails/phones, and can send a **test** message.
+- **Newsletters** are sent with a channel chooser (email / SMS / both); per-channel reach is recorded.
+- Every send is written to a **delivery log** (`notifications_log`); when no provider is configured, sends are logged as `skipped` and nothing breaks.
+
 ### Role-aware dashboard
 - **CMS:** Page content, Departments, Subjects, Activities, Core Values, Staff profiles, Testimonials, FAQs, Gallery, Media library, Site settings
 - **Communications:** Announcements, Events, Newsletter (subscribers + campaigns), Messages inbox, Admissions pipeline

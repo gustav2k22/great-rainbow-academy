@@ -5,6 +5,7 @@ import { Container, Section, SectionHeading } from "@/components/ui/primitives";
 import { Icon } from "@/components/ui/icon";
 import { SmartImage } from "@/components/media/smart-image";
 import { Reveal } from "@/components/layout/route-transition";
+import { FoundersShowcase } from "@/features/public/founders-showcase";
 import { getCoreValues, getPageMeta, getPageSections } from "@/lib/queries";
 
 export const revalidate = 120;
@@ -19,6 +20,9 @@ export default async function AboutPage() {
   const story = sections.story;
   const vision = sections.vision;
   const mission = sections.mission;
+  const founders = sections.founders;
+  const founderSlides = (founders?.data?.slides ?? []) as { image: string; name: string; role: string }[];
+  const founderList = (founders?.data?.founders ?? []) as { name: string; role: string; image?: string }[];
 
   return (
     <>
@@ -45,6 +49,41 @@ export default async function AboutPage() {
             <Reveal delay={0.1}>
               <SectionHeading align="left" eyebrow={story.subheading ?? "Our Story"} title={story.heading ?? "Our Story"} />
               <p className="mt-5 leading-relaxed text-muted text-pretty">{story.body}</p>
+            </Reveal>
+          </Container>
+        </Section>
+      )}
+
+      {/* Meet Our Founders */}
+      {founders && founderSlides.length > 0 && (
+        <Section className="bg-brand-50/40">
+          <Container className="grid items-center gap-12 lg:grid-cols-2">
+            <Reveal>
+              <FoundersShowcase slides={founderSlides} />
+            </Reveal>
+            <Reveal delay={0.1}>
+              <SectionHeading
+                align="left"
+                eyebrow={founders.subheading ?? "Our Leadership"}
+                title={founders.heading ?? "Meet Our Founders"}
+              />
+              <p className="mt-5 leading-relaxed text-muted text-pretty">{founders.body}</p>
+              <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                {founderList.map((f) => (
+                  <div key={f.name} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-brand-100">
+                    {f.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={f.image} alt={f.name} className="h-12 w-12 flex-none rounded-full object-cover" />
+                    ) : (
+                      <span className="h-12 w-12 flex-none rounded-full bg-brand-100" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate font-display text-sm font-bold text-ink">{f.name}</p>
+                      <p className="truncate text-xs text-brand-600">{f.role}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Reveal>
           </Container>
         </Section>
